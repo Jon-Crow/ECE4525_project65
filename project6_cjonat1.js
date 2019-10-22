@@ -73,6 +73,7 @@ var sketchProc = function(processingInstance)
 	var imgs     = [];
 	var imgBody1 = 0;
 	var imgLeg1  = 1;
+	var imgHead1 = 2;
 	
 	var initBody1 = function()
 	{
@@ -84,7 +85,8 @@ var sketchProc = function(processingInstance)
 			points.push(new PVector(390-20*i, 300-30*random()));
 		for(var i = 0; i < 5; i++)
 			points = subdivide(points);
-		noStroke();
+		stroke(0,0,0);
+		strokeWeight(2);
 		fill(77,31,10);
         beginShape();
         for (var i = 0; i < points.length; i++) 
@@ -109,6 +111,11 @@ var sketchProc = function(processingInstance)
 		}
 		points.push(new PVector(150,400));
 		points.push(new PVector(250,400));
+		for(var i = 0; i < 8; i++)
+		{
+			points.push(new PVector(250,370-50*i));
+			points.push(new PVector(300,390-50*i));
+		}
 		points.push(new PVector(250,0));
 		for(var i = 0; i < 3; i++)
 			points = subdivide(points);
@@ -124,10 +131,38 @@ var sketchProc = function(processingInstance)
         endShape();
 		imgs[imgLeg1] = get(0,0,width,height);
 	};
+	var initHead1 = function()
+	{
+		background(0,0,0,0);
+		points = [new PVector(10,  50 ),
+		          new PVector(200, 50 ),
+				  new PVector(200, 200),
+				  new PVector(390, 200),
+				  new PVector(390, 350),
+				  new PVector(10,  350),];
+		for(var i = 0; i < 8; i++)
+			points = subdivide(points);
+		stroke(0,0,0);
+		strokeWeight(2);
+		fill(77,31,10);
+        beginShape();
+        for (var i = 0; i < points.length; i++) 
+		{
+            vertex(points[i].x, points[i].y);   
+        }    
+        vertex(points[0].x, points[0].y);
+        endShape();
+		fill(220,220,220);
+		ellipse(150,150,48,48);
+		fill(50,50,255);
+		ellipse(158,150,32,32);
+		imgs[imgHead1] = get(0,0,width,height);
+	};
 	var initImages = function()
 	{
 		initBody1();
 		initLeg1();
+		initHead1();
 	};
 	
 	initImages();
@@ -143,7 +178,7 @@ var sketchProc = function(processingInstance)
 		text("GAME", 200, 200);
 		textSize(20);
 		text("Space to play", 200, 300);
-		image(imgs[imgLeg1], 0, 0);
+		image(imgs[imgHead1], 0, 0);
 	};
 	MenuGameState.prototype.update = function()
 	{};
