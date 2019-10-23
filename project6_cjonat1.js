@@ -105,7 +105,7 @@ var sketchProc = function(processingInstance)
 			points.push(new PVector(50+30*i, 100*random()));
 		for(var i = 9; i >= 0; i--)
 			points.push(new PVector(50+30*i, 300+50*random()));
-		for(var i = 0; i < 5; i++)
+		for(var i = 0; i < 10; i++)
 			points = subdivide(points);
 		stroke(0,0,0);
 		strokeWeight(2);
@@ -207,9 +207,13 @@ var sketchProc = function(processingInstance)
 	
 	var Animal = function(x, y, size)
 	{
-		this.x    = x;
-		this.y    = y;
-		this.size = size;
+		this.x        = x;
+		this.y        = y;
+		this.size     = size;
+		this.walk     = 0;
+		this.change   = 0;
+		this.legAngle = 0;
+		this.legMove  = 1;
 		r = 200*random();
 		g = 200*random();
 		b = 200*random();
@@ -227,6 +231,8 @@ var sketchProc = function(processingInstance)
 	{
 		pushMatrix();
 		translate(this.x, this.y);
+		if(this.walk < 0)
+			scale(-1, 1);
 		var left = -this.size/2;
 		image(this.body, left, left, this.size, this.size);
 		image(this.leg, left, 10, -left, -left);
@@ -234,10 +240,32 @@ var sketchProc = function(processingInstance)
 		image(this.head, 25, left, -left, -left);
 		popMatrix();
 	};
+	Animal.prototype.update = function()
+	{
+		if(this.x > 300)
+			this.walk = -1;
+		else if(this.x < 100)
+			this.walk = 1;
+		else if(this.change <= 0)
+		{
+			var r = random();
+			if(r < 0.33)
+				this.walk = -1;
+			else if(r < 0.67)
+				this.walk = 0;
+			else
+				this.walk = 1;
+			this.change = 180;
+		}
+		
+		this.x += this.walk*0.2;
+		this.change--;
+	};
 	
 	var MenuGameState = function()
 	{
-		this.animals = [new Animal(200, 200, 128)];
+		this.animals = [new Animal(200, 150, 110),
+		                new Animal(150, 200, 128)];
 	};
 	MenuGameState.prototype.display = function()
 	{
@@ -253,7 +281,10 @@ var sketchProc = function(processingInstance)
 			this.animals[i].display();
 	};
 	MenuGameState.prototype.update = function()
-	{};
+	{
+		for(var i = 0; i < this.animals.length; i++)
+			this.animals[i].update();
+	};
 	MenuGameState.prototype.getNextState = function()
 	{
 		return this;
