@@ -100,9 +100,10 @@ var sketchProc = function(processingInstance)
 	var initBody2 = function(r, g, b)
 	{
 		background(0,0,0,0);
-		points = [];
+		points = [new PVector(0,200)];
 		for(var i = 0; i < 10; i++)
 			points.push(new PVector(50+30*i, 100*random()));
+		points.push(new PVector(width, 200));
 		for(var i = 9; i >= 0; i--)
 			points.push(new PVector(50+30*i, 300+50*random()));
 		for(var i = 0; i < 10; i++)
@@ -213,19 +214,21 @@ var sketchProc = function(processingInstance)
 		this.walk     = 0;
 		this.change   = 0;
 		this.legAngle = 0;
-		this.legMove  = 1;
-		r = 200*random();
-		g = 200*random();
-		b = 200*random();
+		this.legMove  = 0.25*degToRad;
+		this.tail     = [-size/2,-16,-size*0.75,0,-size/2*0.25,0,-size,64];
+		this.tailMove = [0,0,2,0,-1,0,-2,0];
+		this.r        = 200*random();
+		this.g        = 200*random();
+		this.b        = 200*random();
 		if(random() < 0.5)
-			this.body = initBody1(r,g,b);
+			this.body = initBody1(this.r,this.g,this.b);
 		else
-			this.body = initBody2(r,g,b);
-		this.head = initHead1(r,g,b);
+			this.body = initBody2(this.r,this.g,this.b);
+		this.head = initHead1(this.r,this.g,this.b);
 		if(random() < 0.5)
-			this.leg  = initLeg1(r,g,b);
+			this.leg  = initLeg1(this.r,this.g,this.b);
 		else
-			this.leg  = initLeg2(r,g,b);
+			this.leg  = initLeg2(this.r,this.g,this.b);
 	};
 	Animal.prototype.display = function()
 	{
@@ -235,9 +238,18 @@ var sketchProc = function(processingInstance)
 			scale(-1, 1);
 		var left = -this.size/2;
 		image(this.body, left, left, this.size, this.size);
-		image(this.leg, left, 10, -left, -left);
-		image(this.leg, 0, 10, -left, -left);
 		image(this.head, 25, left, -left, -left);
+		
+		stroke(this.r,this.g,this.b);
+		strokeWeight(10);
+		noFill();
+		bezier(this.tail[0],this.tail[1],this.tail[2],this.tail[3],
+		       this.tail[4],this.tail[5],this.tail[6],this.tail[7]);
+		
+		rotate(this.legAngle);
+		image(this.leg, left, 10, -left, -left);
+		rotate(-this.legAngle*2);
+		image(this.leg, 0, 10, -left, -left);
 		popMatrix();
 	};
 	Animal.prototype.update = function()
@@ -257,14 +269,32 @@ var sketchProc = function(processingInstance)
 				this.walk = 1;
 			this.change = 180;
 		}
-		
-		this.x += this.walk*0.2;
+		if(this.walk)
+		{
+			this.x += this.walk*0.2;
+			this.legAngle += this.legMove;
+			if(this.legAngle > 10*degToRad)
+				this.legMove = -0.25*degToRad;
+			else if(this.legAngle < degToRad)
+				this.legMove = 0.25*degToRad;
+		}
 		this.change--;
+		
+		if ((this.tail[2] > this.tail[6]) || (this.tail[2] < this.tail[0])) 
+			this.tailMove[2] = -this.tailMove[2];
+		if ((this.tail[4] < this.tail[0]) || (this.tail[4] > this.tail[6])) 
+			this.tailMove[4] = -this.tailMove[4];
+		if ((abs(this.tail[0] - this.tail[6]) > this.size/2) || (this.tail[6] < this.tail[0])) 
+			this.tailMove[6] = -this.tailMove[6];
+	
+		for(var i = 0; i < this.tail.length; i++)
+			this.tail[i] += this.tailMove[i];
 	};
 	
 	var MenuGameState = function()
 	{
-		this.animals = [new Animal(200, 150, 110),
+		this.animals = [new Animal(250, 100, 92),
+		                new Animal(200, 150, 110),
 		                new Animal(150, 200, 128)];
 	};
 	MenuGameState.prototype.display = function()
