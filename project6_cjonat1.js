@@ -70,7 +70,8 @@ var sketchProc = function(processingInstance)
 		return average(split);
 	};
 	
-	var imgs     = [];
+	var imgs  = [];
+	var imgBG = 0;
 	
 	var initBody1 = function(r,g,b)
 	{
@@ -202,6 +203,7 @@ var sketchProc = function(processingInstance)
 	};
 	var initImages = function()
 	{
+		imgs[imgBG] = loadImage("background.png");
 	};
 	
 	initImages();
@@ -215,8 +217,8 @@ var sketchProc = function(processingInstance)
 		this.change   = 0;
 		this.legAngle = 0;
 		this.legMove  = 0.25*degToRad;
-		this.tail     = [-size/2,-16,-size*0.75,0,-size/2*0.25,0,-size,64];
-		this.tailMove = [0,0,2,0,-1,0,-2,0];
+		this.tail     = [-size/2+10,0,(-size/2-110)/2,10,(-size/2-110)/2,80,-120,60];
+		this.tailMove = [0,0,0.25,0,-0.1,0,-0.25,0];
 		this.r        = 200*random();
 		this.g        = 200*random();
 		this.b        = 200*random();
@@ -280,38 +282,80 @@ var sketchProc = function(processingInstance)
 		}
 		this.change--;
 		
-		if ((this.tail[2] > this.tail[6]) || (this.tail[2] < this.tail[0])) 
-			this.tailMove[2] = -this.tailMove[2];
-		if ((this.tail[4] < this.tail[0]) || (this.tail[4] > this.tail[6])) 
-			this.tailMove[4] = -this.tailMove[4];
-		if ((abs(this.tail[0] - this.tail[6]) > this.size/2) || (this.tail[6] < this.tail[0])) 
-			this.tailMove[6] = -this.tailMove[6];
-	
+		if(this.tail[2] > this.tail[6]) 
+			this.tailMove[2] = -0.25;
+		else if(this.tail[2] < this.tail[0])
+			this.tailMove[2] = 0.25;
+		
+		if(this.tail[4] < this.tail[0]) 
+			this.tailMove[4] = 0.25;
+		else if(this.tail[4] > this.tail[6])
+			this.tailMove[4] = -0.25;
+		
+		if(abs(this.tail[0] - this.tail[6]) > this.size) 
+			this.tailMove[6] = 0.25;
+		else if(this.tail[6] < this.tail[0])
+			this.tailMove[6] = -0.25;
+		
 		for(var i = 0; i < this.tail.length; i++)
 			this.tail[i] += this.tailMove[i];
 	};
 	
 	var MenuGameState = function()
 	{
-		this.animals = [new Animal(250, 100, 92),
-		                new Animal(200, 150, 110),
-		                new Animal(150, 200, 128)];
+		this.animals = [new Animal(250, 200, 92),
+		                new Animal(200, 250, 110),
+		                new Animal(150, 300, 128)];
+		this.wfEdgeW     = 12;
+		this.wfEdgeWMove = -0.5;
+		this.wfLine      = [0,0,0];
+		this.wfLineMove  = [0.5,-0.75,0.6];
 	};
 	MenuGameState.prototype.display = function()
 	{
-		background(10,10,100);
-		fill(255,255,255);
-		textSize(75);
-		textAlign(CENTER);
-		text("GAME", 200, 200);
-		textSize(20);
-		text("Space to play", 200, 300);
+		image(imgs[imgBG],0,0,400,200);	
+		noStroke();
 		
+		fill(75,75,255);
+		rect(162,15,75,200);
+		
+		fill(200,200,255);
+		ellipse(162,208,this.wfEdgeW,385);
+		ellipse(237,208,this.wfEdgeW,385);
+		
+		noFill();
+		stroke(200,200,255);
+		strokeWeight(2);
+		bezier(200,15,
+		       162+this.wfEdgeW*3,75,
+			   237-this.wfEdgeW*3,150,
+			   200,200);
+		bezier(180,15,
+		       180-this.wfEdgeW*2,50,
+			   180+this.wfEdgeW*2,175,
+			   180,200);
+		
+		noStroke();
+		fill(10,150,10);
+		rect(0,200,400,200);
 		for(var i = 0; i < this.animals.length; i++)
 			this.animals[i].display();
 	};
 	MenuGameState.prototype.update = function()
 	{
+		this.wfEdgeW += this.wfEdgeWMove;
+		if(this.wfEdgeW > 15)
+			this.wfEdgeWMove = -0.5;
+		else if(this.wfEdgeW < 10)
+			this.wfEdgeWMove = 0.5;
+		
+		for(var i = 0; i < this.wfLine.length; i++)
+		{
+			this.wfLine[i] += this.wfLineMove[i];
+			if(this.wfLine[i] > 15*(i+1))
+				this.wfLineMove[i] = -0.2*(i+1);
+		}
+		
 		for(var i = 0; i < this.animals.length; i++)
 			this.animals[i].update();
 	};
