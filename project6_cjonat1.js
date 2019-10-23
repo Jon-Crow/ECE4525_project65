@@ -71,11 +71,8 @@ var sketchProc = function(processingInstance)
 	};
 	
 	var imgs     = [];
-	var imgBody1 = 0;
-	var imgLeg1  = 1;
-	var imgHead1 = 2;
 	
-	var initBody1 = function()
+	var initBody1 = function(r,g,b)
 	{
 		background(0,0,0,0);
 		points = [];
@@ -87,7 +84,7 @@ var sketchProc = function(processingInstance)
 			points = subdivide(points);
 		stroke(0,0,0);
 		strokeWeight(2);
-		fill(77,31,10);
+		fill(r,g,b);
         beginShape();
         for (var i = 0; i < points.length; i++) 
 		{
@@ -95,12 +92,34 @@ var sketchProc = function(processingInstance)
         }    
         vertex(points[0].x, points[0].y);
         endShape();
-		fill(206,154,64);
+		fill(r+20,g+20,b+20);
 		for(var i = 0; i < 5; i++)
 			ellipse(40+75*i, 180+40*random(), 20+20*random(), 20+20*random());
-		imgs[imgBody1] = get(0,0,width,height);
+		return get(0,0,width,height);
 	};
-	var initLeg1 = function()
+	var initBody2 = function(r, g, b)
+	{
+		background(0,0,0,0);
+		points = [];
+		for(var i = 0; i < 10; i++)
+			points.push(new PVector(50+30*i, 100*random()));
+		for(var i = 9; i >= 0; i--)
+			points.push(new PVector(50+30*i, 300+50*random()));
+		for(var i = 0; i < 5; i++)
+			points = subdivide(points);
+		stroke(0,0,0);
+		strokeWeight(2);
+		fill(r,g,b);
+        beginShape();
+        for (var i = 0; i < points.length; i++) 
+		{
+            vertex(points[i].x, points[i].y);   
+        }    
+        vertex(points[0].x, points[0].y);
+        endShape();
+		return get(0,0,width,height);
+	};
+	var initLeg1 = function(r,g,b)
 	{
 		background(0,0,0,0);
 		points = [new PVector(150,0)];
@@ -121,7 +140,7 @@ var sketchProc = function(processingInstance)
 			points = subdivide(points);
 		stroke(0,0,0);
 		strokeWeight(2);
-		fill(77,31,10);
+		fill(r,g,b);
         beginShape();
         for (var i = 0; i < points.length; i++) 
 		{
@@ -129,9 +148,31 @@ var sketchProc = function(processingInstance)
         }    
         vertex(points[0].x, points[0].y);
         endShape();
-		imgs[imgLeg1] = get(0,0,width,height);
+		return get(0,0,width,height);
 	};
-	var initHead1 = function()
+	var initLeg2 = function(r,g,b)
+	{
+		background(0,0,0,0);
+		points = [];
+		for(var i = 0; i < 11; i++)
+			points.push(new PVector(100+50*random(),i*40));
+		for(var i = 10; i >= 0; i--)
+			points.push(new PVector(250+50*random(),i*40));
+		for(var i = 0; i < 3; i++)
+			points = subdivide(points);
+		stroke(0,0,0);
+		strokeWeight(2);
+		fill(r,g,b);
+        beginShape();
+        for (var i = 0; i < points.length; i++) 
+		{
+            vertex(points[i].x, points[i].y);   
+        }    
+        vertex(points[0].x, points[0].y);
+        endShape();
+		return get(0,0,width,height);
+	};
+	var initHead1 = function(r,g,b)
 	{
 		background(0,0,0,0);
 		points = [new PVector(10,  50 ),
@@ -144,7 +185,7 @@ var sketchProc = function(processingInstance)
 			points = subdivide(points);
 		stroke(0,0,0);
 		strokeWeight(2);
-		fill(77,31,10);
+		fill(r,g,b);
         beginShape();
         for (var i = 0; i < points.length; i++) 
 		{
@@ -156,19 +197,48 @@ var sketchProc = function(processingInstance)
 		ellipse(150,150,48,48);
 		fill(50,50,255);
 		ellipse(158,150,32,32);
-		imgs[imgHead1] = get(0,0,width,height);
+		return get(0,0,width,height);
 	};
 	var initImages = function()
 	{
-		initBody1();
-		initLeg1();
-		initHead1();
 	};
 	
 	initImages();
 	
+	var Animal = function(x, y, size)
+	{
+		this.x    = x;
+		this.y    = y;
+		this.size = size;
+		r = 200*random();
+		g = 200*random();
+		b = 200*random();
+		if(random() < 0.5)
+			this.body = initBody1(r,g,b);
+		else
+			this.body = initBody2(r,g,b);
+		this.head = initHead1(r,g,b);
+		if(random() < 0.5)
+			this.leg  = initLeg1(r,g,b);
+		else
+			this.leg  = initLeg2(r,g,b);
+	};
+	Animal.prototype.display = function()
+	{
+		pushMatrix();
+		translate(this.x, this.y);
+		var left = -this.size/2;
+		image(this.body, left, left, this.size, this.size);
+		image(this.leg, left, 10, -left, -left);
+		image(this.leg, 0, 10, -left, -left);
+		image(this.head, 25, left, -left, -left);
+		popMatrix();
+	};
+	
 	var MenuGameState = function()
-	{};
+	{
+		this.animals = [new Animal(200, 200, 128)];
+	};
 	MenuGameState.prototype.display = function()
 	{
 		background(10,10,100);
@@ -178,7 +248,9 @@ var sketchProc = function(processingInstance)
 		text("GAME", 200, 200);
 		textSize(20);
 		text("Space to play", 200, 300);
-		image(imgs[imgHead1], 0, 0);
+		
+		for(var i = 0; i < this.animals.length; i++)
+			this.animals[i].display();
 	};
 	MenuGameState.prototype.update = function()
 	{};
